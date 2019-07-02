@@ -7,12 +7,12 @@ Supported git provider:
 
 ## Prerequisite
 - Kubernetes cluster (tested on 1.14, 1.15)
-  See how to setup cluster [here|https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/]
+  See how to setup cluster [here](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
 - Knative serving (istio based) (tested on 0.6)
-  See instruction [here|https://knative.dev/docs/install]
+  See instruction [here](https://knative.dev/docs/install)
   > Note: Knative service endpoint must be accessible from git webhook
 - Tekon build pipeline (tested on 0.4)
-  See instruction [here|https://github.com/tektoncd/pipeline/blob/master/docs/install.md]
+  See instruction [here](https://github.com/tektoncd/pipeline/blob/master/docs/install.md)
 
 ## Installation
 - Install crds using command line
