@@ -30,6 +30,22 @@ type SecretValueFromSource struct {
 	SecretKeyRef *corev1.SecretKeySelector `json:"secretKeyRef,omitempty"`
 }
 
+// +kubebuilder:validation:Enum=gitlab;github;gogs
+
+// GitProvider providers name of git provider
+type GitProvider string
+
+var (
+	// Gitlab gitlab.com compatible
+	Gitlab GitProvider = "gitlab"
+
+	// Github github.com compatible
+	Github GitProvider = "github"
+
+	// Gogs gogs compatible
+	Gogs GitProvider = "gogs"
+)
+
 // +kubebuilder:validation:Enum=create;delete;fork;push;issues;issue_comment;pull_request;release
 type gitEvent string
 
@@ -51,6 +67,9 @@ type GitHookSpec struct {
 	//   https://gitlab.com/pongsatt/githook
 	// +kubebuilder:validation:MinLength=1
 	ProjectURL string `json:"projectUrl"`
+
+	// GitProvder is the name of the git source in which we would like register webhook
+	GitProvider GitProvider `json:"gitProvider"`
 
 	// EventType is the type of event to receive from Gogs. These
 	// correspond to supported events to the add project hook

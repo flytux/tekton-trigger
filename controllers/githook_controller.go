@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
+	servinv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	servingv1beta1 "github.com/knative/serving/pkg/apis/serving/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
@@ -36,8 +36,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	gogsv1alpha1 "gitlab.com/pongsatt/githook/api/v1alpha1"
-	"gitlab.com/pongsatt/githook/pkg/gogshook"
+	v1alpha1 "gitlab.com/pongsatt/githook/api/v1alpha1"
+	"gitlab.com/pongsatt/githook/pkg/githook"
+	"gitlab.com/pongsatt/githook/pkg/model"
 )
 
 const (
@@ -57,7 +58,7 @@ func (r *GitHookReconciler) requestLogger(req ctrl.Request) logr.Logger {
 	return r.Log.WithName(req.NamespacedName.String())
 }
 
-func (r *GitHookReconciler) sourceLogger(source *gogsv1alpha1.GitHook) logr.Logger {
+func (r *GitHookReconciler) sourceLogger(source *v1alpha1.GitHook) logr.Logger {
 	return r.Log.WithName(fmt.Sprintf("%s/%s", source.Namespace, source.Name))
 }
 
@@ -67,6 +68,10 @@ type GitHookReconciler struct {
 	Log          logr.Logger
 	Scheme       *runtime.Scheme
 	WebhookImage string
+}
+
+func getGitClient(source *v1alpha1.GitHook, options *model.HookOptions) (*githook.Client, error) {
+	return githook.New(source.Spec.GitProvider, options.BaseURL, options.AccessToken)
 }
 
 // +kubebuilder:rbac:groups=tools.pongzt.com,resources=githooks,verbs=get;list;watch;create;update;patch;delete
@@ -82,7 +87,7 @@ func (r *GitHookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	log.Info("Reconciling " + req.NamespacedName.String())
 
 	// Fetch the GitHook instance
-	sourceOrg := &gogsv1alpha1.GitHook{}
+	sourceOrg := &v1alpha1.GitHook{}
 	err := r.Get(context.Background(), req.NamespacedName, sourceOrg)
 	if err != nil {
 		// Error reading the object - requeue the request.
@@ -93,10 +98,10 @@ func (r *GitHookReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	var reconcileErr error
 	if sourceOrg.ObjectMeta.DeletionTimestamp == nil {
-		reconcileErr = r.reconcile(source.(*gogsv1alpha1.GitHook))
+		reconcileErr = r.reconcile(source.(*v1alpha1.GitHook))
 	} else {
-		if r.hasFinalizer(source.(*gogsv1alpha1.GitHook).Finalizers) {
-			reconcileErr = r.finalize(source.(*gogsv1alpha1.GitHook))
+		if r.hasFinalizer(source.(*v1alpha1.GitHook).Finalizers) {
+			reconcileErr = r.finalize(source.(*v1alpha1.GitHook))
 		}
 	}
 	if err := r.Update(context.Background(), source); err != nil {
@@ -120,8 +125,8 @@ func parseGitURL(gitURL string) (baseURL string, owner string, project string, e
 	return baseURL, owner, project, nil
 }
 
-func (r *GitHookReconciler) buildHookFromSource(source *gogsv1alpha1.GitHook) (*gogshook.HookOptions, error) {
-	hookOptions := &gogshook.HookOptions{}
+func (r *GitHookReconciler) buildHookFromSource(source *v1alpha1.GitHook) (*model.HookOptions, error) {
+	hookOptions := &model.HookOptions{}
 
 	baseURL, owner, projectName, err := parseGitURL(source.Spec.ProjectURL)
 	if err != nil {
@@ -151,7 +156,7 @@ func (r *GitHookReconciler) buildHookFromSource(source *gogsv1alpha1.GitHook) (*
 	return hookOptions, nil
 }
 
-func (r *GitHookReconciler) reconcile(source *gogsv1alpha1.GitHook) error {
+func (r *GitHookReconciler) reconcile(source *v1alpha1.GitHook) error {
 	log := r.sourceLogger(source)
 
 	hookOptions, err := r.buildHookFromSource(source)
@@ -184,12 +189,16 @@ func (r *GitHookReconciler) reconcile(source *gogsv1alpha1.GitHook) error {
 	return nil
 }
 
-func (r *GitHookReconciler) reconcileWebhook(source *gogsv1alpha1.GitHook, hookOptions *gogshook.HookOptions) (string, error) {
+func (r *GitHookReconciler) reconcileWebhook(source *v1alpha1.GitHook, hookOptions *model.HookOptions) (string, error) {
 	log := r.sourceLogger(source)
 
-	gogsClient := gogshook.New(hookOptions.BaseURL, hookOptions.AccessToken)
+	gitClient, err := getGitClient(source, hookOptions)
 
-	exists, changed, err := gogsClient.Validate(hookOptions)
+	if err != nil {
+		return "", err
+	}
+
+	exists, changed, err := gitClient.Validate(hookOptions)
 
 	if err != nil {
 		return "", err
@@ -197,7 +206,7 @@ func (r *GitHookReconciler) reconcileWebhook(source *gogsv1alpha1.GitHook, hookO
 
 	if !exists {
 		log.Info("create new webhook", "project", hookOptions.Project)
-		hookID, err := gogsClient.Create(hookOptions)
+		hookID, err := gitClient.Create(hookOptions)
 
 		if err != nil {
 			return "", err
@@ -212,7 +221,7 @@ func (r *GitHookReconciler) reconcileWebhook(source *gogsv1alpha1.GitHook, hookO
 
 	if changed == true {
 		log.Info("update existing webhook", "project", hookOptions.Project)
-		hookID, err := gogsClient.Update(hookOptions)
+		hookID, err := gitClient.Update(hookOptions)
 
 		if err != nil {
 			return "", err
@@ -227,7 +236,7 @@ func (r *GitHookReconciler) reconcileWebhook(source *gogsv1alpha1.GitHook, hookO
 	return hookOptions.ID, nil
 }
 
-func (r *GitHookReconciler) reconcileWebhookService(source *gogsv1alpha1.GitHook) (*servingv1alpha1.Service, error) {
+func (r *GitHookReconciler) reconcileWebhookService(source *v1alpha1.GitHook) (*servinv1alpha1.Service, error) {
 	log := r.sourceLogger(source)
 
 	desiredKsvc, err := r.generateKnativeServiceObject(source, r.WebhookImage)
@@ -279,7 +288,7 @@ func (r *GitHookReconciler) reconcileWebhookService(source *gogsv1alpha1.GitHook
 	return ksvc, err
 }
 
-func (r *GitHookReconciler) finalize(source *gogsv1alpha1.GitHook) error {
+func (r *GitHookReconciler) finalize(source *v1alpha1.GitHook) error {
 	log := r.Log
 
 	//remove service
@@ -302,10 +311,23 @@ func (r *GitHookReconciler) finalize(source *gogsv1alpha1.GitHook) error {
 		return err
 	}
 
-	gogsClient := gogshook.Client{}
-	err = gogsClient.Delete(hookOptions)
+	gitClient, err := getGitClient(source, hookOptions)
+
 	if err != nil {
-		return fmt.Errorf("Failed to delete project hook: " + err.Error())
+		return err
+	}
+
+	exist, _, err := gitClient.Validate(hookOptions)
+
+	if err != nil {
+		return err
+	}
+
+	if exist {
+		err = gitClient.Delete(hookOptions)
+		if err != nil {
+			return fmt.Errorf("Failed to delete project hook: " + err.Error())
+		}
 	}
 
 	r.removeFinalizer(source)
@@ -333,7 +355,7 @@ func (r *GitHookReconciler) secretFrom(namespace string, secretKeySelector *core
 	return string(secretVal), nil
 }
 
-func (r *GitHookReconciler) addFinalizer(source *gogsv1alpha1.GitHook) {
+func (r *GitHookReconciler) addFinalizer(source *v1alpha1.GitHook) {
 	source.Finalizers = insertFinalizer(source.Finalizers)
 }
 
@@ -343,7 +365,7 @@ func insertFinalizer(finalizers []string) []string {
 	return set.List()
 }
 
-func (r *GitHookReconciler) removeFinalizer(source *gogsv1alpha1.GitHook) {
+func (r *GitHookReconciler) removeFinalizer(source *v1alpha1.GitHook) {
 	source.Finalizers = deleteFinalizer(source.Finalizers)
 }
 
@@ -362,13 +384,13 @@ func (r *GitHookReconciler) hasFinalizer(finalizers []string) bool {
 	return false
 }
 
-func (r *GitHookReconciler) generateKnativeServiceObject(source *gogsv1alpha1.GitHook, receiveAdapterImage string) (*servingv1alpha1.Service, error) {
+func (r *GitHookReconciler) generateKnativeServiceObject(source *v1alpha1.GitHook, receiveAdapterImage string) (*servinv1alpha1.Service, error) {
 	labels := map[string]string{
 		"receive-adapter": "gogs",
 	}
 	env := []corev1.EnvVar{
 		{
-			Name: "GOGS_SECRET_TOKEN",
+			Name: "SECRET_TOKEN",
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: source.Spec.SecretToken.SecretKeyRef,
 			},
@@ -383,21 +405,22 @@ func (r *GitHookReconciler) generateKnativeServiceObject(source *gogsv1alpha1.Gi
 	ioutil.WriteFile(fmt.Sprintf("%s.json", source.Name), runSpecJSON, 0644)
 
 	containerArgs := []string{
+		fmt.Sprintf("--gitprovider=%s", source.Spec.GitProvider),
 		fmt.Sprintf("--namespace=%s", source.Namespace),
 		fmt.Sprintf("--name=%s", source.Name),
 		fmt.Sprintf("--runSpecJSON=%s", string(runSpecJSON)),
 	}
 
-	ksvc := &servingv1alpha1.Service{
+	ksvc := &servinv1alpha1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: fmt.Sprintf("%s-", source.Name),
 			Namespace:    source.Namespace,
 			Labels:       labels,
 		},
-		Spec: servingv1alpha1.ServiceSpec{
-			ConfigurationSpec: servingv1alpha1.ConfigurationSpec{
-				Template: &servingv1alpha1.RevisionTemplateSpec{
-					Spec: servingv1alpha1.RevisionSpec{
+		Spec: servinv1alpha1.ServiceSpec{
+			ConfigurationSpec: servinv1alpha1.ConfigurationSpec{
+				Template: &servinv1alpha1.RevisionTemplateSpec{
+					Spec: servinv1alpha1.RevisionSpec{
 						RevisionSpec: servingv1beta1.RevisionSpec{
 							PodSpec: servingv1beta1.PodSpec{
 								ServiceAccountName: runKsvcAs,
@@ -424,28 +447,28 @@ var (
 	jobOwnerKey = ".metadata.controller"
 )
 
-func (r *GitHookReconciler) getOwnedKnativeService(source *gogsv1alpha1.GitHook) (*servingv1alpha1.Service, error) {
+func (r *GitHookReconciler) getOwnedKnativeService(source *v1alpha1.GitHook) (*servinv1alpha1.Service, error) {
 	ctx := context.Background()
 
-	list := &servingv1alpha1.ServiceList{}
+	list := &servinv1alpha1.ServiceList{}
 	if err := r.List(ctx, list, client.InNamespace(source.Namespace), client.MatchingField(jobOwnerKey, source.Name)); err != nil {
 		return nil, fmt.Errorf("unable to list knative service %s", err)
 	}
 
 	if len(list.Items) <= 0 {
-		return nil, apierrs.NewNotFound(servingv1alpha1.Resource("ksvc"), "")
+		return nil, apierrs.NewNotFound(servinv1alpha1.Resource("ksvc"), "")
 	}
 
 	return &list.Items[0], nil
 }
 
-func (r *GitHookReconciler) waitForKnativeServiceReady(source *gogsv1alpha1.GitHook) (*servingv1alpha1.Service, error) {
+func (r *GitHookReconciler) waitForKnativeServiceReady(source *v1alpha1.GitHook) (*servinv1alpha1.Service, error) {
 	for attempts := 0; attempts < 4; attempts++ {
 		ksvc, err := r.getOwnedKnativeService(source)
 		if err != nil {
 			return nil, err
 		}
-		routeCondition := ksvc.Status.GetCondition(servingv1alpha1.ServiceConditionRoutesReady)
+		routeCondition := ksvc.Status.GetCondition(servinv1alpha1.ServiceConditionRoutesReady)
 		receiveAdapterAddr := ksvc.Status.Address
 		if routeCondition != nil && routeCondition.Status == corev1.ConditionTrue && receiveAdapterAddr != nil {
 			return ksvc, nil
@@ -457,9 +480,9 @@ func (r *GitHookReconciler) waitForKnativeServiceReady(source *gogsv1alpha1.GitH
 
 // SetupWithManager setups controller with manager
 func (r *GitHookReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(&servingv1alpha1.Service{}, jobOwnerKey, func(rawObj runtime.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(&servinv1alpha1.Service{}, jobOwnerKey, func(rawObj runtime.Object) []string {
 		// grab the service object, extract the owner...
-		service := rawObj.(*servingv1alpha1.Service)
+		service := rawObj.(*servinv1alpha1.Service)
 		owner := metav1.GetControllerOf(service)
 		if owner == nil {
 			return nil
@@ -476,7 +499,7 @@ func (r *GitHookReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&gogsv1alpha1.GitHook{}).
-		Owns(&servingv1alpha1.Service{}).
+		For(&v1alpha1.GitHook{}).
+		Owns(&servinv1alpha1.Service{}).
 		Complete(r)
 }

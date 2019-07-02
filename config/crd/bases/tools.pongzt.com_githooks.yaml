@@ -424,6 +424,14 @@ spec:
                 type: string
               minItems: 1
               type: array
+            gitProvider:
+              description: GitProvder is the name of the git source in which we would
+                like register webhook
+              enum:
+              - gitlab
+              - github
+              - gogs
+              type: string
             projectUrl:
               description: 'ProjectUrl is the url of the Gogs project for which we
                 are interested to receive events from. Examples:   https://gitlab.com/pongsatt/githook'
@@ -1127,6 +1135,7 @@ spec:
               type: boolean
           required:
           - projectUrl
+          - gitProvider
           - eventTypes
           - accessToken
           - secretToken

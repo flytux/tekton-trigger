@@ -1,5 +1,10 @@
 GitHook is a kubernetes CRDs (kubebuilder based) that can trigger tekton pipeline from git webhooks.
 
+Supported git provider:
+- Gogs
+- Gitlab (soon)
+- Github (soon)
+
 ## Prerequisite
 - Kubernetes cluster (tested on 1.14, 1.15)
   See how to setup cluster [here|https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/]
@@ -50,6 +55,7 @@ kind: GitHook
 metadata:
   name: githook-sample
 spec:
+  gitProvider: gogs
   eventTypes:
   - push
   - issue_comment

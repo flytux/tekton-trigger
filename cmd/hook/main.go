@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"os"
 
-	"gitlab.com/pongsatt/githook/pkg/gogshook"
+	"gitlab.com/pongsatt/githook/pkg/githook"
+	"gitlab.com/pongsatt/githook/pkg/server"
 	"gitlab.com/pongsatt/githook/pkg/tekton"
-	"gopkg.in/go-playground/webhooks.v5/gogs"
 )
 
 const (
@@ -17,15 +17,24 @@ const (
 	envPort = "PORT"
 
 	// EnvSecret environment variable containing gogs secret token
-	envSecret = "GOGS_SECRET_TOKEN"
+	envSecret = "SECRET_TOKEN"
 )
 
 func main() {
+	gitprovider := flag.String("gitprovider", "", "git provider ex. gitlab github")
 	namespace := flag.String("namespace", "default", "namespace to create pipelinerun")
 	name := flag.String("name", "", "name of the pipelinerun")
 	runSpecJSON := flag.String("runSpecJSON", "", "pipelinerun spec in json format")
 
 	flag.Parse()
+
+	if gitprovider == nil || *gitprovider == "" {
+		log.Fatalf("No gitprovider given")
+	}
+
+	if name == nil || *name == "" {
+		log.Fatalf("No name given")
+	}
 
 	if runSpecJSON == nil || *runSpecJSON == "" {
 		log.Fatalf("No runSpecJSON given")
@@ -49,37 +58,33 @@ func main() {
 		log.Fatalf("cannot create tekton client: %s", err)
 	}
 
-	ra := &gogshook.GogsReceiveAdapter{
-		TektonClient: tektonClient,
-		Namespace:    *namespace,
-		Name:         *name,
-		RunSpecJSON:  *runSpecJSON,
-	}
-
-	hook, err := gogs.New(gogs.Options.Secret(secretToken))
+	hook, err := buildProvider(*gitprovider, secretToken)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	ra := &githook.ReceiveAdapter{
+		TektonClient: tektonClient,
+		HookServer:   hook,
+		Namespace:    *namespace,
+		Name:         *name,
+		RunSpecJSON:  *runSpecJSON,
+	}
+
 	addr := fmt.Sprintf(":%s", port)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		payload, err := hook.Parse(r,
-			gogs.CreateEvent,
-			gogs.DeleteEvent,
-			gogs.ForkEvent,
-			gogs.PushEvent,
-			gogs.IssuesEvent,
-			gogs.IssueCommentEvent,
-			gogs.PullRequestEvent,
-			gogs.ReleaseEvent)
-		if err != nil {
-			log.Println(err)
-			http.Error(w, err.Error(), 500)
-		}
-
-		ra.HandleEvent(payload, r.Header)
+		ra.HandleRequest(w, r)
 	})
 	http.ListenAndServe(addr, nil)
+}
+
+func buildProvider(gitprovider, secretToken string) (githook.HookServer, error) {
+	switch gitprovider {
+	case "gogs":
+		return server.NewGogsServer(secretToken)
+	}
+
+	return nil, fmt.Errorf("provider %s not supported", gitprovider)
 }

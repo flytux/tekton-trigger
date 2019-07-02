@@ -59,8 +59,9 @@ var _ = Describe("GitHook", func() {
 					Namespace: "default",
 				},
 				Spec: GitHookSpec{
-					ProjectURL: "http://test.git",
-					EventTypes: []gitEvent{"push"},
+					ProjectURL:  "http://test.git",
+					GitProvider: Gitlab,
+					EventTypes:  []gitEvent{"push"},
 				}}
 
 			By("creating an API obj")
