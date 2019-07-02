@@ -1,0 +1,22 @@
+apiVersion: tools.pongzt.com/v1alpha1
+kind: GitHook
+metadata:
+  name: githook-sample
+spec:
+  eventTypes:
+  - push
+  - issue_comment
+  - pull_request
+  projectUrl: "https://gitlab.com/<your test path>/<your projectname>" #replace this with your test repo
+  accessToken:
+    secretKeyRef:
+      name: gitsecret
+      key: accessToken
+  secretToken:
+    secretKeyRef:
+      name: gitsecret
+      key: secretToken
+  runspec:
+    pipelineRef:
+      name: simple-pipeline
+    serviceAccount: default

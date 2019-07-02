@@ -1,0 +1,7 @@
+version: "2"
+domain: pongzt.com
+repo: gitlab.com/pongsatt/githook
+resources:
+- group: knative
+  version: v1alpha1
+  kind: GitHook
