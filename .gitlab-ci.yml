@@ -31,8 +31,8 @@ manifests:
     name: gcr.io/triggermesh/kustomize
     entrypoint: [""]
   script:
-    - "sed -i'' -e 's@image: .*@image: $CI_REGISTRY_IMAGE/controller:$CI_COMMIT_TAG@' ./config/default/manager_image_patch.yaml"
-    - "sed -i'' -e 's@value: .*@value: $CI_REGISTRY_IMAGE/webhook:$CI_COMMIT_TAG@' ./config/default/manager_image_patch.yaml"
+    - "sed -i'' -e \"s@image: .*@image: $CI_REGISTRY_IMAGE/controller:$CI_COMMIT_TAG@\" ./config/default/manager_image_patch.yaml"
+    - "sed -i'' -e \"s@value: .*@value: $CI_REGISTRY_IMAGE/webhook:$CI_COMMIT_TAG@\" ./config/default/manager_image_patch.yaml"
     - kustomize build config/default > release.yaml
   artifacts:
     paths:
