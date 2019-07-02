@@ -19,7 +19,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"strings"
 	"time"
@@ -401,8 +400,6 @@ func (r *GitHookReconciler) generateKnativeServiceObject(source *v1alpha1.GitHoo
 	if err != nil {
 		return nil, err
 	}
-
-	ioutil.WriteFile(fmt.Sprintf("%s.json", source.Name), runSpecJSON, 0644)
 
 	containerArgs := []string{
 		fmt.Sprintf("--gitprovider=%s", source.Spec.GitProvider),
