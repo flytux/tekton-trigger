@@ -35,7 +35,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	v1alpha1 "gitlab.com/pongsatt/githook/api/v1alpha1"
+	"gitlab.com/pongsatt/githook/api/v1alpha1"
+	githookclient "gitlab.com/pongsatt/githook/pkg/client"
 	"gitlab.com/pongsatt/githook/pkg/githook"
 	"gitlab.com/pongsatt/githook/pkg/model"
 )
@@ -70,7 +71,18 @@ type GitHookReconciler struct {
 }
 
 func getGitClient(source *v1alpha1.GitHook, options *model.HookOptions) (*githook.Client, error) {
-	return githook.New(source.Spec.GitProvider, options.BaseURL, options.AccessToken)
+	var gitClient githook.GitClient
+
+	switch source.Spec.GitProvider {
+	case v1alpha1.Gogs:
+		gitClient = githookclient.NewGogsClient(options.BaseURL, options.AccessToken)
+	case v1alpha1.Github:
+		gitClient = githookclient.NewGithubClient(options.AccessToken)
+	default:
+		return nil, fmt.Errorf("git provider %s not support", source.Spec.GitProvider)
+	}
+
+	return githook.New(gitClient, options.BaseURL, options.AccessToken)
 }
 
 // +kubebuilder:rbac:groups=tools.pongzt.com,resources=githooks,verbs=get;list;watch;create;update;patch;delete

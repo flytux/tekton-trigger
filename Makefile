@@ -1,10 +1,10 @@
 
 # Image URL to use all building/pushing image targets
-IMG=registry.gitlab.com/pongsatt/githook/controller:latest
+IMG=public-registry.app.pongzt.com/githook/controller:v0.2
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
-WEBHOOK_IMG=registry.gitlab.com/pongsatt/githook/webhook:latest
+WEBHOOK_IMG=public-registry.app.pongzt.com/githook/webhook:v0.2
 
 export WEBHOOK_IMG
 

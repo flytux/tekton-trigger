@@ -1,10 +1,6 @@
 package githook
 
 import (
-	"fmt"
-
-	"gitlab.com/pongsatt/githook/api/v1alpha1"
-	"gitlab.com/pongsatt/githook/pkg/client"
 	"gitlab.com/pongsatt/githook/pkg/model"
 )
 
@@ -29,18 +25,7 @@ type Client struct {
 }
 
 // New creates new client with dependencies
-func New(gitProvider v1alpha1.GitProvider, baseURL, accessToken string) (*Client, error) {
-	var gitClient GitClient
-
-	switch gitProvider {
-	case v1alpha1.Gogs:
-		gitClient = client.NewGogsClient(baseURL, accessToken)
-	}
-
-	if gitClient == nil {
-		return nil, fmt.Errorf("git provider %s not support", gitProvider)
-	}
-
+func New(gitClient GitClient, baseURL, accessToken string) (*Client, error) {
 	return &Client{
 		GitClient: gitClient,
 	}, nil

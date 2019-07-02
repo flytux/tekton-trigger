@@ -2,8 +2,8 @@ GitHook is a kubernetes CRDs (kubebuilder based) that can trigger tekton pipelin
 
 Supported git provider:
 - Gogs
+- Github
 - Gitlab (soon)
-- Github (soon)
 
 ## Prerequisite
 - Kubernetes cluster (tested on 1.14, 1.15)

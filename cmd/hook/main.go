@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"gitlab.com/pongsatt/githook/api/v1alpha1"
 	"gitlab.com/pongsatt/githook/pkg/githook"
 	"gitlab.com/pongsatt/githook/pkg/server"
 	"gitlab.com/pongsatt/githook/pkg/tekton"
@@ -58,7 +59,7 @@ func main() {
 		log.Fatalf("cannot create tekton client: %s", err)
 	}
 
-	hook, err := buildProvider(*gitprovider, secretToken)
+	hook, err := buildHookServer(v1alpha1.GitProvider(*gitprovider), secretToken)
 
 	if err != nil {
 		log.Fatal(err)
@@ -79,11 +80,12 @@ func main() {
 	})
 	http.ListenAndServe(addr, nil)
 }
-
-func buildProvider(gitprovider, secretToken string) (githook.HookServer, error) {
+func buildHookServer(gitprovider v1alpha1.GitProvider, secretToken string) (githook.HookServer, error) {
 	switch gitprovider {
-	case "gogs":
+	case v1alpha1.Gogs:
 		return server.NewGogsServer(secretToken)
+	case v1alpha1.Github:
+		return server.NewGithubServer(secretToken)
 	}
 
 	return nil, fmt.Errorf("provider %s not supported", gitprovider)
