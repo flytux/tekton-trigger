@@ -37,3 +37,5 @@ manifests:
   artifacts:
     paths:
     - release.yaml
+  only:
+  - tags
