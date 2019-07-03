@@ -399,7 +399,7 @@ func (r *GitHookReconciler) hasFinalizer(finalizers []string) bool {
 
 func (r *GitHookReconciler) generateKnativeServiceObject(source *v1alpha1.GitHook, receiveAdapterImage string) (*servinv1alpha1.Service, error) {
 	labels := map[string]string{
-		"receive-adapter": "gogs",
+		"receive-adapter": source.Name,
 	}
 	env := []corev1.EnvVar{
 		{
@@ -424,7 +424,7 @@ func (r *GitHookReconciler) generateKnativeServiceObject(source *v1alpha1.GitHoo
 
 	ksvc := &servinv1alpha1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: fmt.Sprintf("%s-", source.Name),
+			GenerateName: fmt.Sprintf("%s-webhook-", source.Name),
 			Namespace:    source.Namespace,
 			Labels:       labels,
 		},
