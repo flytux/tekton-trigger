@@ -20,6 +20,7 @@ require (
 	github.com/prometheus/common v0.0.0-20181020173914-7e9e6cabbd39 // indirect
 	github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d // indirect
 	github.com/tektoncd/pipeline v0.4.0
+	github.com/xanzy/go-gitlab v0.18.0
 	golang.org/x/net v0.0.0-20190501004415-9ce7a6920f09
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	gopkg.in/go-playground/webhooks.v5 v5.11.0

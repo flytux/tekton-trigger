@@ -86,6 +86,8 @@ func buildHookServer(gitprovider v1alpha1.GitProvider, secretToken string) (gith
 		return server.NewGogsServer(secretToken)
 	case v1alpha1.Github:
 		return server.NewGithubServer(secretToken)
+	case v1alpha1.Gitlab:
+		return server.NewGitlabServer(secretToken)
 	}
 
 	return nil, fmt.Errorf("provider %s not supported", gitprovider)

@@ -78,6 +78,8 @@ func getGitClient(source *v1alpha1.GitHook, options *model.HookOptions) (*githoo
 		gitClient = githookclient.NewGogsClient(options.BaseURL, options.AccessToken)
 	case v1alpha1.Github:
 		gitClient = githookclient.NewGithubClient(options.AccessToken)
+	case v1alpha1.Gitlab:
+		gitClient = githookclient.NewGitlabClient(options.BaseURL, options.AccessToken)
 	default:
 		return nil, fmt.Errorf("git provider %s not support", source.Spec.GitProvider)
 	}
