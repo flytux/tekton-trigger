@@ -15,7 +15,7 @@ type HookServer interface {
 	BuildOptionFromPayload(payload interface{}) tekton.PipelineOptions
 }
 
-// ReceiveAdapter converts incoming Gogs webhook events to
+// ReceiveAdapter converts incoming git webhook events to
 // CloudEvents and then sends them to the specified Sink
 type ReceiveAdapter struct {
 	TektonClient *tekton.Client
@@ -37,7 +37,7 @@ func (ra *ReceiveAdapter) HandleRequest(w http.ResponseWriter, r *http.Request) 
 	ra.HandleEvent(payload, r.Header)
 }
 
-// HandleEvent is invoked whenever an event comes in from Gogs
+// HandleEvent is invoked whenever an event comes in from git
 func (ra *ReceiveAdapter) HandleEvent(payload interface{}, header http.Header) {
 	err := ra.handleEvent(payload, header)
 	if err != nil {
@@ -46,12 +46,12 @@ func (ra *ReceiveAdapter) HandleEvent(payload interface{}, header http.Header) {
 }
 
 func (ra *ReceiveAdapter) handleEvent(payload interface{}, header http.Header) error {
-	gogsEventType := header.Get("X-" + ra.HookServer.GetEventHeader())
+	gitEventType := header.Get("X-" + ra.HookServer.GetEventHeader())
 
-	log.Printf("Handling %s", gogsEventType)
+	log.Printf("Handling %s", gitEventType)
 
-	if gogsEventType == "" {
-		return fmt.Errorf("invalid event: %s", gogsEventType)
+	if gitEventType == "" {
+		return fmt.Errorf("invalid event: %s", gitEventType)
 	}
 
 	options := ra.HookServer.BuildOptionFromPayload(payload)

@@ -42,7 +42,7 @@ import (
 )
 
 const (
-	controllerAgentName = "gogs-source-controller"
+	controllerAgentName = "githook-controller"
 	runKsvcAs           = "pipeline-runner" // see tektonrole.yaml
 	finalizerName       = controllerAgentName
 )

@@ -61,7 +61,7 @@ type GitHookSpec struct {
 	// +optional
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 
-	// ProjectUrl is the url of the Gogs project for which we are interested
+	// ProjectUrl is the url of the git project for which we are interested
 	// to receive events from.
 	// Examples:
 	//   https://gitlab.com/pongsatt/githook

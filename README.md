@@ -31,12 +31,15 @@ githook-controller-manager-7869dc5b76-7gsrx   2/2     Running   0          42m
 ```
 
 ## Sample
-- Create git accessToken so the program is able to registry a webhook
-- Install a sample tekton pipeline
+In this sample, we will apply githook resource for gitlab. When push event happen to the sample project, it will trigger a simple tekton pipeline which just print a message to the log. See more advance example pipeline [here](https://github.com/tektoncd/pipeline/tree/master/examples).
+
+- Install a simple tekton pipeline
 ```sh
-kubectl apply -f config/samples/0-simple_tekton_pipeline.yaml
+kubectl apply -f https://gitlab.com/pongsatt/githook/raw/master/config/samples/0-simple_tekton_pipeline.yaml
 ```
-- Create git secret
+- Create a sample gitlab project
+- Create gitlab access token for the controller to registry webhook (following this [instruction](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html))
+- Apply below git secret to the cluster. Replace "xxxx" with token from step above
 
 ```yaml
 apiVersion: v1
@@ -48,14 +51,14 @@ stringData:
   accessToken: "xxxx" #replace this with your repository access token
   secretToken: "mysecret1234" #replace this with your own value
 ```
-- Install githook resource into cluster
+- Apply githook resource into cluster (replace projectUrl with your own project from above)
 ```yaml
 apiVersion: tools.pongzt.com/v1alpha1
 kind: GitHook
 metadata:
   name: githook-sample
 spec:
-  gitProvider: gogs
+  gitProvider: gitlab
   eventTypes:
   - push
   - issue_comment

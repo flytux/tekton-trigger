@@ -17,7 +17,7 @@ const (
 	// Environment variable containing the HTTP port
 	envPort = "PORT"
 
-	// EnvSecret environment variable containing gogs secret token
+	// EnvSecret environment variable containing git secret token
 	envSecret = "SECRET_TOKEN"
 )
 
