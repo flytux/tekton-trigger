@@ -77,6 +77,16 @@ spec:
       name: simple-pipeline
     serviceAccount: default
 ```
+- Wait for a while and verify if the webhook is registered on your project ([gitlab webhook](https://docs.gitlab.com/ee/user/project/integrations/webhooks.html))
+- Push something to your repository and run command below to verify pipeline
+```sh
+kubectl get pipelinerun
+```
+You should see something like:
+```sh
+NAME                   SUCCEEDED   REASON      STARTTIME   COMPLETIONTIME
+githook-sample-29ldn   True        Succeeded   20h         20h
+```
 
 ## How it works
 - A new GitHook resource is applied to the cluster
