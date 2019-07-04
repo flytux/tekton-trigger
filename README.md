@@ -17,7 +17,7 @@ Supported git provider:
 ## Installation
 - Install crds using command line
 ```sh
-kubectl apply -f https://gitlab.com/pongsatt/githook/-/jobs/244118507/artifacts/raw/release.yaml
+kubectl apply -f https://gitlab.com/pongsatt/githook/-/jobs/244356986/artifacts/raw/release.yaml
 ```
 - Verify if controller is running
 ```sh
