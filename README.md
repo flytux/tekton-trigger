@@ -15,9 +15,10 @@ Supported git provider:
   See instruction [here](https://github.com/tektoncd/pipeline/blob/master/docs/install.md)
 
 ## Installation
-- Install crds using command line
+- Install crds and service account needed to run the pipeline using command line
 ```sh
 kubectl apply -f https://gitlab.com/pongsatt/githook/-/jobs/244356986/artifacts/raw/release.yaml
+kubectl apply -f https://gitlab.com/pongsatt/githook/raw/master/config/tektonrole.yaml
 ```
 - Verify if controller is running
 ```sh
