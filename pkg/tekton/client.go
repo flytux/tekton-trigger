@@ -21,6 +21,7 @@ type PipelineOptions struct {
 	Prefix      string
 	GitURL      string
 	GitRevision string
+	GitCommit   string
 	RunSpecJSON string
 }
 

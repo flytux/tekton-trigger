@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"gitlab.com/pongsatt/githook/pkg/tekton"
+	"gitlab.com/pongsatt/githook/pkg/template"
 )
 
 // HookServer provides git provider specific functionality
@@ -57,7 +58,7 @@ func (ra *ReceiveAdapter) handleEvent(payload interface{}, header http.Header) e
 	options := ra.HookServer.BuildOptionFromPayload(payload)
 	options.Namespace = ra.Namespace
 	options.Prefix = ra.Name
-	options.RunSpecJSON = ra.RunSpecJSON
+	options.RunSpecJSON = template.Replace(ra.RunSpecJSON, buildKeyValue(options))
 
 	pipelineRun, err := ra.TektonClient.CreatePipelineRun(options)
 
@@ -68,4 +69,12 @@ func (ra *ReceiveAdapter) handleEvent(payload interface{}, header http.Header) e
 	log.Printf("create pipeline run successfully %s", pipelineRun.Name)
 
 	return nil
+}
+
+func buildKeyValue(opts tekton.PipelineOptions) map[string]string {
+	keyVals := make(map[string]string)
+
+	keyVals["REVISION"] = opts.GitRevision
+
+	return keyVals
 }

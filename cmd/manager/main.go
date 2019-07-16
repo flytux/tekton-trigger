@@ -22,7 +22,6 @@ import (
 
 	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	servingv1beta1 "github.com/knative/serving/pkg/apis/serving/v1beta1"
-	tektonv1alpha1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1alpha1"
 	githookv1alpha1 "gitlab.com/pongsatt/githook/api/v1alpha1"
 	"gitlab.com/pongsatt/githook/controllers"
 	corev1 "k8s.io/api/core/v1"
@@ -43,7 +42,6 @@ func init() {
 	githookv1alpha1.AddToScheme(scheme)
 	servingv1alpha1.AddToScheme(scheme)
 	servingv1beta1.AddToScheme(scheme)
-	tektonv1alpha1.AddToScheme(scheme)
 	corev1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
