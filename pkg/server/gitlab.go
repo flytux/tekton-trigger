@@ -49,28 +49,24 @@ func (git *GitlabServer) BuildOptionFromPayload(payload interface{}) tekton.Pipe
 		return tekton.PipelineOptions{
 			GitURL:      p.Project.HTTPURL,
 			GitRevision: p.Ref,
-			GitCommit:   p.After,
 		}
 	case gitlab.IssueEventPayload:
 		p := payload.(gitlab.IssueEventPayload)
 		return tekton.PipelineOptions{
 			GitURL:      p.Project.HTTPURL,
 			GitRevision: p.Project.DefaultBranch,
-			GitCommit:   p.ObjectAttributes.LastCommit.ID,
 		}
 	case gitlab.CommentEventPayload:
 		p := payload.(gitlab.CommentEventPayload)
 		return tekton.PipelineOptions{
 			GitURL:      p.Project.HTTPURL,
 			GitRevision: p.Project.DefaultBranch,
-			GitCommit:   p.ObjectAttributes.LastCommit.ID,
 		}
 	case gitlab.MergeRequestEventPayload:
 		p := payload.(gitlab.MergeRequestEventPayload)
 		return tekton.PipelineOptions{
 			GitURL:      p.Project.HTTPURL,
 			GitRevision: p.ObjectAttributes.SourceBranch,
-			GitCommit:   p.ObjectAttributes.LastCommit.ID,
 		}
 	}
 	return tekton.PipelineOptions{}

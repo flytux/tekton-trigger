@@ -43,7 +43,7 @@ import (
 
 const (
 	controllerAgentName = "githook-controller"
-	runKsvcAs           = "githook-pipeline-runner" // see tektonrole.yaml
+	runKsvcAs           = "pipeline-runner" // see tektonrole.yaml
 	finalizerName       = controllerAgentName
 )
 

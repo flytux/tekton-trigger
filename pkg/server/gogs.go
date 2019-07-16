@@ -66,7 +66,6 @@ func (git *GogsServer) BuildOptionFromPayload(payload interface{}) tekton.Pipeli
 		return tekton.PipelineOptions{
 			GitURL:      p.Repo.HTMLURL,
 			GitRevision: p.Ref,
-			GitCommit:   p.After,
 		}
 	case gogsclient.DeletePayload:
 		p := payload.(gogsclient.DeletePayload)
