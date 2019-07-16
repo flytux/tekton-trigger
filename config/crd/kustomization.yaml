@@ -3,7 +3,6 @@
 # It should be run by config/default
 resources:
 - bases/tools.pongzt.com_githooks.yaml
-- bases/tektonrole.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patches:
