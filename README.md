@@ -17,7 +17,7 @@ Supported git provider:
 ## Installation
 - Install crds and service account needed to run the pipeline using command line
 ```sh
-kubectl apply -f https://gitlab.com/pongsatt/githook/-/jobs/244356986/artifacts/raw/release.yaml
+kubectl apply -f https://gitlab.com/pongsatt/githook/-/jobs/252361056/artifacts/raw/release.yaml
 kubectl apply -f https://gitlab.com/pongsatt/githook/raw/master/config/tektonrole.yaml
 ```
 - Verify if controller is running
