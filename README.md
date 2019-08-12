@@ -17,7 +17,7 @@ Supported git provider:
 ## Installation
 - Install crds and service account needed to run the pipeline using command line
 ```sh
-kubectl apply -f https://gitlab.com/pongsatt/githook/-/jobs/252361056/artifacts/raw/release.yaml
+kubectl apply -f https://gitlab.com/pongsatt/githook/-/jobs/270302191/artifacts/raw/release.yaml
 kubectl apply -f https://gitlab.com/pongsatt/githook/raw/master/config/tektonrole.yaml
 ```
 - Verify if controller is running
@@ -95,3 +95,11 @@ githook-sample-29ldn   True        Succeeded   20h         20h
 - Controller registers a webhook to git repository specified in GitHook resource
 - When an event specified in GitHook resource happens, knative service will create new pipelinerun based on spec in GitHook resource
   > Note: Pipeline resource named "git-source" is injected by service using webhook information
+
+## Release progress
+- Create a release tag using command below.
+```sh
+git tag -a v1.4 -m "my version 1.4"
+
+git push origin v1.4
+```
