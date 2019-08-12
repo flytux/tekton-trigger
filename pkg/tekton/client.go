@@ -21,6 +21,7 @@ type PipelineOptions struct {
 	Prefix      string
 	GitURL      string
 	GitRevision string
+	GitCommit   string
 	RunSpecJSON string
 }
 
@@ -96,7 +97,7 @@ func (client *Client) CreatePipelineRun(options PipelineOptions) (*v1alpha1.Pipe
 func (client *Client) generatePipelineRun(options PipelineOptions) (*v1alpha1.PipelineRun, error) {
 
 	pipelineRunSpec := &v1alpha1.PipelineRunSpec{}
-	err := json.Unmarshal([]byte(options.RunSpecJSON), pipelineRunSpec)
+	err := json.Unmarshal([]byte(replaceVars(options.RunSpecJSON, options)), pipelineRunSpec)
 
 	if err != nil {
 		return nil, err

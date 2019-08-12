@@ -65,6 +65,7 @@ func (git *GithubServer) BuildOptionFromPayload(payload interface{}) tekton.Pipe
 		return tekton.PipelineOptions{
 			GitURL:      p.Repository.HTMLURL,
 			GitRevision: p.Ref,
+			GitCommit:   p.After,
 		}
 	case github.DeletePayload:
 		p := payload.(github.DeletePayload)

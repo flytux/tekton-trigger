@@ -49,6 +49,7 @@ func (git *GitlabServer) BuildOptionFromPayload(payload interface{}) tekton.Pipe
 		return tekton.PipelineOptions{
 			GitURL:      p.Project.HTTPURL,
 			GitRevision: p.Ref,
+			GitCommit:   p.After,
 		}
 	case gitlab.IssueEventPayload:
 		p := payload.(gitlab.IssueEventPayload)
