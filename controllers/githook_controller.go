@@ -184,11 +184,7 @@ func (r *GitHookReconciler) reconcile(source *v1alpha1.GitHook) error {
 		return err
 	}
 
-	if source.Spec.SslVerify {
-		hookOptions.URL = "https://" + ksvc.Status.DeprecatedDomain
-	} else {
-		hookOptions.URL = "http://" + ksvc.Status.DeprecatedDomain
-	}
+	hookOptions.URL = getWebhookURL(source, ksvc)
 
 	hookID, err := r.reconcileWebhook(source, hookOptions)
 
