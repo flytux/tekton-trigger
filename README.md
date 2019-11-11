@@ -8,7 +8,7 @@ Supported git provider:
 ## Prerequisite
 - Kubernetes cluster (tested on 1.14, 1.15)
   See how to setup cluster [here](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
-- Knative serving (istio based) (tested on 0.6)
+- Knative serving (istio based) (tested on 0.6, 0.10)
   See instruction [here](https://knative.dev/docs/install)
   > Note: Knative service endpoint must be accessible from git webhook
 - Tekon build pipeline (tested on 0.4)
@@ -17,7 +17,7 @@ Supported git provider:
 ## Installation
 - Install crds and service account needed to run the pipeline using command line
 ```sh
-kubectl apply -f https://gitlab.com/pongsatt/githook/-/jobs/270302191/artifacts/raw/release.yaml
+kubectl apply -f https://gitlab.com/pongsatt/githook/-/jobs/347255776/artifacts/raw/release.yaml
 kubectl apply -f https://gitlab.com/pongsatt/githook/raw/master/config/tektonrole.yaml
 ```
 - Verify if controller is running
